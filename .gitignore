@@ -1,8 +1,8 @@
-/target
+target/
 **/*.rs.bk
 
-/results
-/plots
+results/
+plots/
 
 # Python
 __pycache__/
@@ -11,5 +11,5 @@ __pycache__/
 venv/
 .venv/
 
-/testing
-/instruction
+testing/
+instruction/
