@@ -9,6 +9,9 @@ from scipy.stats import chisquare
 
 ###############################################
 
+plt.rcParams['mathtext.fontset'] = 'cm'
+plt.rcParams['font.family'] = 'STIXGeneral'
+
 def f(x):
     return 4/5 * (1 + x - x**3)
 
@@ -49,24 +52,34 @@ labels = {
 
 fs = 11
 
+N = 1e6
+
+bins = 10
+
+chisquare_results = {}
+
+#######################################################
+
 for key in observed:
     plt.figure(figsize=(4, 3))
     
-    y = observed[key] / 1e6 / 1e-1
+    y = observed[key] / N * bins
     y = np.append(y, 0)
     
-    steps = np.linspace(0, 1, 11)
+    steps = np.linspace(0, 1, bins + 1)
     x = np.linspace(0, 1, 100)
+
+    chisquare_results[key] = chisquare(observed[key], f_exp=expected*N)
     
     plt.step(steps, y, where="post", label="Obserwowane")
     plt.plot(x, f(x), color="red", label="Oczekiwane")
     
-    plt.text(0.2, 0.9, f"$\\chi^2 = ${chisquare(observed[key], f_exp=expected*1e6)[0]:.2f}\n$p = ${chisquare(observed[key], f_exp=expected*1e6)[1]:.3f}",
+    plt.text(0.2, 0.9, f"$\\chi^2 = ${chisquare(observed[key], f_exp=expected*N)[0]:.2f}\n$p = ${chisquare(observed[key], f_exp=expected*N)[1]:.3f}",
              ha='center', va='center', transform=plt.gca().transAxes, fontsize=fs-1)
     
-    plt.title(labels[key], fontsize=fs)
-    plt.xlabel("x", fontsize=fs-1)
-    plt.ylabel("P(x)", fontsize=fs-1)
+    plt.title(f"{labels[key]}, $N=${N:.0e}, {bins} bins", fontsize=fs)
+    plt.xlabel("$x$", fontsize=fs-1)
+    plt.ylabel("$f(x)$", fontsize=fs-1)
     plt.grid()
     plt.legend(fontsize=fs-2)
 
@@ -77,3 +90,17 @@ for key in observed:
     
     plt.savefig(output_dir / f"{key}.pdf")
     plt.close()
+
+
+########################################################
+
+output_dir = ROOT_DIR / "results"
+
+if not output_dir.exists():
+    os.makedirs(output_dir)
+
+with open(output_dir / "chisquare_results.txt", "w") as f:
+    for key in chisquare_results:
+        f.write(f"{labels[key]}: chi2 = {chisquare_results[key][0]:.2f}, p-value = {chisquare_results[key][1]:.3f}\n")
+
+    f.close()

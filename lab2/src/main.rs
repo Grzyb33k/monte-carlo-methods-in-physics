@@ -93,16 +93,22 @@ impl Generator for Metropolis {
     }
 }
 
-struct Elimination;
+struct Elimination {
+    m_param: f64,
+}
 
 impl Elimination {
-    // fn new() {}
+    fn new(m: f64) -> Self {
+        Self {
+            m_param : m,
+        }
+    }
 }
 
 impl Generator for Elimination {
     fn generate_sample(&mut self) -> f64 {
         let mut rng = rand::thread_rng();
-        let m = 1.15;
+        let m = self.m_param;
 
         loop {
             let u1 = rng.gen_range(0.0..=1.0);
@@ -119,7 +125,9 @@ impl Generator for Elimination {
     }
 }
 
-fn generate_data(g: &mut dyn Generator, n: usize, bins: usize) -> std::io::Result<()> {    let now = Instant::now();
+fn generate_data(g: &mut dyn Generator, n: usize, bins: usize) -> std::io::Result<()> {
+    
+    let now = Instant::now();
 
     let save_path = String::from("results");
 
@@ -153,6 +161,8 @@ fn generate_data(g: &mut dyn Generator, n: usize, bins: usize) -> std::io::Resul
 
 fn generate_expected_data(g: &mut dyn Generator, x_min: f64, x_max: f64, bins: usize) -> std::io::Result<()> {
 
+    let now = Instant::now();
+
     let save_path = String::from("results");
 
     fs::create_dir_all(&save_path)?;
@@ -172,6 +182,9 @@ fn generate_expected_data(g: &mut dyn Generator, x_min: f64, x_max: f64, bins: u
         writeln!(file, "{}", pi)?;
     }
 
+    let elapsed = now.elapsed();
+
+    println!("Wykonano w {:.2?}", elapsed);
 
     Ok(())
 }
@@ -185,9 +198,9 @@ fn main() {
 
     let mut generators: Vec<Box<dyn Generator>> = vec![
         Box::new(ComplexDistr),
-        Box::new(Metropolis::new(0.25)),
-        Box::new(Metropolis::new(0.1)),
-        Box::new(Elimination),
+        Box::new(Metropolis::new(0.5)),
+        Box::new(Metropolis::new(0.05)),
+        Box::new(Elimination::new(1.15)),
     ];
 
     for generator in &mut generators {
